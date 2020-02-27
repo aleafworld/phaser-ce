@@ -38,15 +38,20 @@ Phaser.Component.Smoothed.prototype = {
             {
                 if (this.texture)
                 {
-                    this.texture.baseTexture.scaleMode = 0;
-                    this.texture.baseTexture.dirty();
+                    if (this.texture.baseTexture.scaleMode !== 0)
+                    {
+                        this.texture.baseTexture.scaleMode = 0;
+                        this.texture.baseTexture.dirty();
+                    }
                 }
             }
-            else
-            if (this.texture)
+            else if (this.texture)
             {
-                this.texture.baseTexture.scaleMode = 1;
-                this.texture.baseTexture.dirty();
+                if (this.texture.baseTexture.scaleMode !== 1)
+                {
+                    this.texture.baseTexture.scaleMode = 1;
+                    this.texture.baseTexture.dirty();
+                }
             }
         }
 

@@ -790,16 +790,16 @@ Phaser.Point.equalsXY = function (a, x, y)
 Phaser.Point.fuzzyEquals = function (a, b, epsilon)
 {
 
-    return Phaser.Math.fuzzyEquals(a.x, b.x, epsilon) &&
-           Phaser.Math.fuzzyEquals(a.y, b.y, epsilon);
+    return Phaser.Math.fuzzyEqual(a.x, b.x, epsilon) &&
+           Phaser.Math.fuzzyEqual(a.y, b.y, epsilon);
 
 };
 
 Phaser.Point.fuzzyEqualsXY = function (a, x, y, epsilon)
 {
 
-    return Phaser.Math.fuzzyEquals(a.x, x, epsilon) &&
-           Phaser.Math.fuzzyEquals(a.y, y, epsilon);
+    return Phaser.Math.fuzzyEqual(a.x, x, epsilon) &&
+           Phaser.Math.fuzzyEqual(a.y, y, epsilon);
 
 };
 
@@ -1124,12 +1124,12 @@ Phaser.Point.parse = function (obj, xProp, yProp)
 
     if (obj[xProp])
     {
-        point.x = parseFloat(obj[xProp], 10);
+        point.x = parseFloat(obj[xProp]);
     }
 
     if (obj[yProp])
     {
-        point.y = parseFloat(obj[yProp], 10);
+        point.y = parseFloat(obj[yProp]);
     }
 
     return point;

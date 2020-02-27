@@ -139,6 +139,12 @@ Phaser.BitmapText = function (game, x, y, font, text, size, align)
     * @private
     */
     this._align = align;
+    
+    /**
+    * @property {number} _letterSpacing - Internal cache var.
+    * @private
+    */
+    this._letterSpacing = 0;
 
     /**
     * @property {number} _tint - Internal cache var.
@@ -259,7 +265,7 @@ Phaser.BitmapText.prototype.scanLine = function (data, scale, text)
     {
         var end = (i === text.length - 1) ? true : false;
 
-        if (/(?:\r\n|\r|\n)/.test(text.charAt(i)))
+        if ((/(?:\r\n|\r|\n)/).test(text.charAt(i)))
         {
             return { width: w, text: text.substr(0, i), end: end, chars: chars };
         }
@@ -282,7 +288,7 @@ Phaser.BitmapText.prototype.scanLine = function (data, scale, text)
             var kerning = (prevCharCode && charData.kerning[prevCharCode]) ? charData.kerning[prevCharCode] : 0;
 
             //  Record the last space in the string and the current width
-            if (/(\s)/.test(text.charAt(i)))
+            if ((/(\s)/).test(text.charAt(i)))
             {
                 lastSpace = i;
                 wrappedWidth = w;
@@ -299,11 +305,11 @@ Phaser.BitmapText.prototype.scanLine = function (data, scale, text)
             }
             else
             {
-                w += (charData.xAdvance + kerning) * scale;
+                w += (charData.xAdvance + kerning + this.letterSpacing) * scale;
 
-                chars.push(x + (charData.xOffset + kerning) * scale);
+                chars.push(x + (charData.xOffset + kerning + this.letterSpacing) * scale);
 
-                x += (charData.xAdvance + kerning) * scale;
+                x += (charData.xAdvance + kerning + this.letterSpacing) * scale;
 
                 prevCharCode = charCode;
             }
@@ -541,6 +547,30 @@ Phaser.BitmapText.prototype.updateTransform = function ()
     PIXI.DisplayObjectContainer.prototype.updateTransform.call(this);
 
 };
+
+/**
+* @name Phaser.BitmapText#letterSpacing
+* @property {string} letterSpacing - Sets the letter spacing between each character of this Bitmap Text. Can be a positive value to increase the space, or negative to reduce it. Spacing is applied after the kerning values have been set.
+*/
+Object.defineProperty(Phaser.BitmapText.prototype, 'letterSpacing', {
+
+    get: function ()
+    {
+        return this._letterSpacing;
+    },
+
+    set: function (value)
+    {
+
+        if (typeof(value) === 'number')
+        {
+            this._letterSpacing = value;
+            this.updateText();
+        }
+
+    }
+
+});
 
 /**
 * @name Phaser.BitmapText#align

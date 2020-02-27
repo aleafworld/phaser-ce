@@ -1151,6 +1151,8 @@ Phaser.Loader.prototype = {
     * #  sprite frame
     * ```
     *
+    * `spacing` must be on only the right and bottom edges of each frame, including the last row and column.
+    *
     * The first sprite frame is found at (margin) px from the left of the image.
     * The second sprite frame is found at (margin + frameWidth + spacing) px from the left of the image, and so on.
     *
@@ -1161,7 +1163,7 @@ Phaser.Loader.prototype = {
     * @param {number} frameHeight - Height in pixels of a single frame in the sprite sheet.
     * @param {number} [frameMax=-1] - How many frames in this sprite sheet. If not specified it will divide the whole image into frames.
     * @param {number} [margin=0] - The distance from the top-left of the image to the top-left of the first frame, if any.
-    * @param {number} [spacing=0] - The distance from the right edge of a frame to the left edge of the next frame on the same row; or the distance from the bottom edge of a frame to the top edge of the next frame on the same column.
+    * @param {number} [spacing=0] - The distance from the right edge of a frame to the left edge of the next frame on the same row, from the right edge of the last frame of a row to the margin, from the bottom edge of a frame to the top edge of the next frame on the same column, and from the bottom edge of the last frame of a column to the margin.
     * @param {number} [skipFrames=0] - Skip a number of frames. Useful when there are multiple sprite sheets in one image.
     * @return {Phaser.Loader} This Loader instance.
     */
@@ -1435,6 +1437,42 @@ Phaser.Loader.prototype = {
         }
 
         return this;
+
+    },
+
+    /**
+    * Adds a CSV Map data file to the current load queue.
+    *
+    * @method Phaser.Loader#tilemapCSV
+    * @param {string} key - Unique asset key of the tilemap data.
+    * @param {string} [url] - URL of the tile map file. If undefined or `null` and no data is given the url will be set to `<key>.csv`, i.e. if `key` was "level1" then the URL will be "level1.csv".
+    * @param {string} [data] - A CSV data string. If given then the url is ignored and this is used for map data instead.
+    * @return {Phaser.Loader} This Loader instance.
+    *
+    * @see Phaser.Loader#tilemap
+    */
+    tilemapCSV: function (key, url, data)
+    {
+
+        return this.tilemap(key, url, data, Phaser.Tilemap.CSV);
+
+    },
+
+    /**
+    * Adds a Tiled JSON Map data file to the current load queue.
+    *
+    * @method Phaser.Loader#tilemapTiledJSON
+    * @param {string} key - Unique asset key of the tilemap data.
+    * @param {string} [url] - URL of the tile map file. If undefined or `null` and no data is given the url will be set to `<key>.json`, i.e. if `key` was "level1" then the URL will be "level1.json".
+    * @param {object|string} [data] - A JSON data object or string. If given then the url is ignored and this is used for map data instead.
+    * @return {Phaser.Loader} This Loader instance.
+    *
+    * @see Phaser.Loader#tilemap
+    */
+    tilemapTiledJSON: function (key, url, data)
+    {
+
+        return this.tilemap(key, url, data, Phaser.Tilemap.TILED_JSON);
 
     },
 
@@ -2495,6 +2533,7 @@ Phaser.Loader.prototype = {
         file.data.name = file.key;
         file.data.controls = false;
         file.data.autoplay = false;
+        file.data.playsInline = true;
 
         var videoLoadEvent = function ()
         {

@@ -947,6 +947,7 @@ declare module Phaser {
         css3D: boolean;
         desktop: boolean;
         deviceReadyAt: number;
+        edge: boolean;
         electron: boolean;
         ejecta: boolean;
         epiphany: boolean;
@@ -1493,6 +1494,7 @@ declare module Phaser {
         parent?: HTMLElement | string;
         physicsConfig?: any;
         pointerLock?: boolean;
+        powerPreference?: string;
         preserveDrawingBuffer?: boolean;
         renderer?: number;
         resolution?: number;
@@ -1564,6 +1566,7 @@ declare module Phaser {
         physics: Phaser.Physics;
         physicsConfig: any;
         plugins: PluginManager;
+        powerPreference: string;
         preserveDrawingBuffer: Boolean;
         raf: Phaser.RequestAnimationFrame;
         renderer: PIXI.CanvasRenderer | PIXI.WebGLRenderer;
@@ -3102,7 +3105,7 @@ declare module Phaser {
         progress: number;
         mute: boolean;
         paused: boolean;
-        volume: boolean;
+        volume: number;
         playbackRate: boolean;
         playing: boolean;
         playWhenUnlocked: boolean;
@@ -4457,6 +4460,7 @@ declare module Phaser {
         key: string;
         type: number;
 
+        clear(): void;
         render(displayObject: PIXI.DisplayObject, matrix?: Phaser.Matrix, clear?: boolean): void;
         renderXY(displayObject: PIXI.DisplayObject, x: number, y: number, clear?: boolean): void;
         renderRawXY(displayObject: PIXI.DisplayObject, x: number, y: number, clear?: boolean): void;

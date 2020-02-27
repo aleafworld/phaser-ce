@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-/* globals Creature,CreatureAnimation,CreatureManager */
+/* globals Creature,CreatureAnimation,CreatureManager,CreatureModuleUtils */
 /**
 * @author       Richard Davey <rich@photonstorm.com>
 * @author       Kestrel Moon Studios <creature@kestrelmoon.com>
@@ -65,6 +65,7 @@ PIXI.CreatureShader = function (gl)
         'attribute vec2 aVertexPosition;',
         'attribute vec2 aTextureCoord;',
         'attribute float aTextureIndex;',
+        'attribute vec4 aColor;',
         'uniform mat3 translationMatrix;',
         'uniform vec2 projectionVector;',
         'uniform vec2 offsetVector;',
@@ -80,7 +81,7 @@ PIXI.CreatureShader = function (gl)
         '   gl_Position = vec4( v.x / projectionVector.x -1.0, v.y / -projectionVector.y + 1.0 , 0.0, 1.0);',
         '   vTextureCoord = aTextureCoord;',
         '   vTextureIndex = aTextureIndex;',
-        '   vColor = vec4(tint[0], tint[1], tint[2], 1.0) * alpha;',
+        '   vColor = vec4(tint[0], tint[1], tint[2], 1.0) * aColor.a * alpha;',
         '}'
     ];
 
@@ -117,7 +118,7 @@ PIXI.CreatureShader.prototype.init = function ()
     this.aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
     this.aTextureCoord = gl.getAttribLocation(program, 'aTextureCoord');
 
-    this.attributes = [ this.aVertexPosition, this.aTextureCoord, this.aTextureIndex ];
+    this.attributes = [ this.aVertexPosition, this.aTextureCoord, this.colorAttribute ];
 
     this.translationMatrix = gl.getUniformLocation(program, 'translationMatrix');
     this.alpha = gl.getUniformLocation(program, 'alpha');
@@ -175,8 +176,9 @@ PIXI.CreatureShader.prototype.destroy = function ()
 * @param {string|PIXI.Texture} key - The texture used by the Creature Object during rendering. It can be a string which is a reference to the Cache entry, or an instance of a PIXI.Texture.
 * @param {string} mesh - The mesh data for the Creature Object. It should be a string which is a reference to the Cache JSON entry.
 * @param {string} [animation='default'] - The animation within the mesh data  to play.
+* @param {string} [useFlatData=false] - Use flat data
 */
-Phaser.Creature = function (game, x, y, key, mesh, animation, loadAnchors)
+Phaser.Creature = function (game, x, y, key, mesh, animation, useFlatData)
 {
 
     /**
@@ -185,6 +187,7 @@ Phaser.Creature = function (game, x, y, key, mesh, animation, loadAnchors)
     this.game = game;
 
     if (animation === undefined) { animation = 'default'; }
+    if (useFlatData === undefined) { useFlatData = false; }
 
     /**
     * @property {number} type - The const type of this object.
@@ -198,18 +201,18 @@ Phaser.Creature = function (game, x, y, key, mesh, animation, loadAnchors)
         return;
     }
 
-    var meshData = game.cache.getJSON(mesh);
+    var meshData = game.cache.getJSON(mesh, true);
 
     /**
     * @property {Creature} _creature - The Creature instance.
     * @private
     */
-    this._creature = new Creature(meshData, loadAnchors);
+    this._creature = new Creature(meshData, useFlatData);
 
     /**
     * @property {CreatureAnimation} animation - The CreatureAnimation instance.
     */
-    this.animation = new CreatureAnimation(meshData, animation, this._creature);
+    this.animation = new CreatureAnimation(meshData, animation, useFlatData);
 
     /**
     * @property {CreatureManager} manager - The CreatureManager instance for this object.
@@ -282,8 +285,11 @@ Phaser.Creature = function (game, x, y, key, mesh, animation, loadAnchors)
     * @property {Uint16Array} colors - The vertices colors
     * @protected
     */
-    this.colors = new Float32Array([ 1, 1, 1, 1 ]);
-
+    this.colors = new Float32Array(target.total_num_pts * 4);
+    for(var j = 0; j < this.colors.length; j++)
+    {
+        this.colors[j] = 1.0;
+    }
 
     this.updateRenderData(target.global_pts, target.global_uvs);
 
@@ -442,6 +448,10 @@ Phaser.Creature.prototype._renderCreature = function (renderSession)
         gl.bindBuffer(gl.ARRAY_BUFFER, this._uvBuffer);
         gl.vertexAttribPointer(shader.aTextureCoord, 2, gl.FLOAT, false, 0, 0);
 
+        // Update the colors
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
+
         gl.activeTexture(gl.TEXTURE0);
 
         //  Check if a texture is dirty..
@@ -470,6 +480,11 @@ Phaser.Creature.prototype._renderCreature = function (renderSession)
         gl.bindBuffer(gl.ARRAY_BUFFER, this._uvBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.DYNAMIC_DRAW);
         gl.vertexAttribPointer(shader.aTextureCoord, 2, gl.FLOAT, false, 0, 0);
+
+        // Update the colors
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shader.colorAttribute, 4, gl.FLOAT, false, 0, 0);
 
         gl.activeTexture(gl.TEXTURE0);
 
@@ -560,6 +575,24 @@ Phaser.Creature.prototype.updateRenderData = function (verts, uvs)
         uv_index += 2;
 
         write_pt_index += 2;
+    }
+
+    // Update color/opacity region values
+    var render_composition =
+        target.render_composition;
+    var regions_map =
+        render_composition.getRegionsMap();
+    for(var region_name in regions_map)
+    {
+        var cur_region = regions_map[region_name];
+        var start_pt_idx = cur_region.getStartPtIndex();
+        var end_pt_idx = cur_region.getEndPtIndex() + 1;
+        var cur_opacity = cur_region.opacity * 0.01;
+
+        for(var i = (start_pt_idx * 4); i <= (end_pt_idx * 4); i++)
+        {
+            this.colors[i] = cur_opacity;
+        }
     }
 
 };
@@ -904,7 +937,112 @@ Phaser.Creature.prototype.createAllAnimations = function (mesh)
         return;
     }
 
-    var meshData = this.game.cache.getJSON(mesh);
+    var meshData = this.game.cache.getJSON(mesh, true);
 
     this.manager.CreateAllAnimations(meshData);
+};
+
+/**
+* @method Phaser.Creature#setMetaData
+* @memberof Phaser.Creature
+*/
+Phaser.Creature.prototype.setMetaData = function (meta)
+{
+    if (!this.game.cache.checkJSONKey(meta))
+    {
+
+        console.warn('Phaser.Creature: Invalid meta key given. Not found in Phaser.Cache');
+        return;
+
+    }
+
+    var metaJson = this.game.cache.getJSON(meta, true);
+    var metaData = CreatureModuleUtils.BuildCreatureMetaData(metaJson);
+
+    this._creature.SetMetaData(metaData);
+
+};
+
+/**
+* @method Phaser.Creature#enableSkinSwap
+* @memberof Phaser.Creature
+*/
+Phaser.Creature.prototype.enableSkinSwap = function (swapNameIn, active)
+{
+
+    var target = this.manager.target_creature;
+
+    if (target.creature_meta_data === null)
+    {
+
+        console.warn('Phaser.Creature: Attempting to use skin swapping before setting the meta data. You must use {@link #setMetaData} before using skin swapping functionality.');
+        return;
+
+    }
+
+    target.EnableSkinSwap(swapNameIn, active);
+
+    this.indices = new Uint16Array(target.final_skin_swap_indices.length);
+    for(var i = 0; i < this.indices.length; i++)
+    {
+
+        this.indices[i] = target.final_skin_swap_indices[i];
+
+    }
+
+};
+
+/**
+* @method Phaser.Creature#disableSkinSwap
+* @memberof Phaser.Creature
+*/
+Phaser.Creature.prototype.disableSkinSwap = function ()
+{
+
+    var target = this.manager.target_creature;
+
+    if (target.creature_meta_data === null)
+    {
+
+        console.warn('Phaser.Creature: Attempting to use skin swapping before setting the meta data. You must use {@link #setMetaData} before using skin swapping functionality.');
+        return;
+
+    }
+
+    target.DisableSkinSwap();
+
+    this.indices = new Uint16Array(target.global_indices.length);
+    for(var i = 0; i < this.indices.length; i++)
+    {
+
+        this.indices[i] = target.global_indices[i];
+
+    }
+
+};
+
+/**
+* @method Phaser.Creature#setActiveItemSwap
+* @memberof Phaser.Creature
+*/
+Phaser.Creature.prototype.setActiveItemSwap = function (regionName, swapIdx)
+{
+
+    var target = this.manager.target_creature;
+
+    target.active_uv_swap_actions[regionName] = swapIdx;
+
+};
+
+/**
+* @method Phaser.Creature#removeActiveItemSwap
+* @memberof Phaser.Creature
+*/
+Phaser.Creature.prototype.removeActiveItemSwap = function (regionName)
+{
+
+    var target = this.manager.target_creature;
+
+    delete target.active_uv_swap_actions[regionName];
+
 };

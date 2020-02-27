@@ -14,7 +14,7 @@ var Phaser = Phaser || { // jshint ignore:line
     * @constant Phaser.VERSION
     * @type {string}
     */
-    VERSION: '2.11.0',
+    VERSION: '2.14.0',
 
     /**
     * An array of Phaser game instances.
@@ -410,14 +410,14 @@ var Phaser = Phaser || { // jshint ignore:line
 
     /**
     * A constant representing a left-top alignment or position.
-    * @constant Phaser.Phaser.LEFT_TOP
+    * @constant Phaser.LEFT_TOP
     * @type {integer}
     */
     LEFT_TOP: 3,
 
     /**
     * A constant representing a left-center alignment or position.
-    * @constant Phaser.LEFT_TOP
+    * @constant Phaser.LEFT_CENTER
     * @type {integer}
     */
     LEFT_CENTER: 4,

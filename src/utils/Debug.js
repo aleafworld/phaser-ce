@@ -382,14 +382,31 @@ Phaser.Utils.Debug.prototype = {
         this.line('Playing: ' + sound.isPlaying + '  Loop: ' + sound.loop);
         this.line('Time: ' + (sound.currentTime / 1000).toFixed(3) + 's  Total: ' + sound.totalDuration.toFixed(3) + 's');
         this.line('Volume: ' + sound.volume.toFixed(2) + (sound.mute ? ' (Mute)' : ''));
-        this.line('Using: ' + (sound.usingWebAudio ? 'Web Audio' : 'Audio Tag') + '  ' +
-            (sound.usingWebAudio ? ('Source: ' + (sound.sourceId || 'none')) : ''));
+        this.line('Using: ' + (sound.usingWebAudio ? 'Web Audio' : 'Audio Tag'));
+
+        if (sound.usingWebAudio)
+        {
+            this.line('  Source: ' + (sound.sourceId || 'none'));
+        }
+
+        if (sound.usingAudioTag && sound._sound)
+        {
+            var source = sound._sound;
+
+            this.line('  currentSrc: ' + source.currentSrc);
+            this.line('  currentTime: ' + source.currentTime);
+            this.line('  duration: ' + source.duration);
+            this.line('  ended: ' + source.ended);
+            this.line('  loop: ' + source.loop);
+            this.line('  muted: ' + source.muted);
+            this.line('  paused: ' + source.paused);
+        }
 
         if (sound.currentMarker !== '')
         {
             this.line('Marker: ' + sound.currentMarker + '  Duration: ' + sound.duration.toFixed(3) + 's (' + sound.durationMS + 'ms)');
-            this.line('Start: ' + sound.markers[sound.currentMarker].start + '  Stop: ' + sound.markers[sound.currentMarker].stop);
-            this.line('Position: ' + sound.position);
+            this.line('Start: ' + sound.markers[sound.currentMarker].start.toFixed(3) + '  Stop: ' + sound.markers[sound.currentMarker].stop.toFixed(3));
+            this.line('Position: ' + sound.position.toFixed(3));
         }
 
         this.stop();
@@ -448,6 +465,7 @@ Phaser.Utils.Debug.prototype = {
         this.line('x: ' + camera.x + ' y: ' + camera.y);
         this.line('Bounds: ' + (bounds ? ('x: ' + bounds.x + ' y: ' + bounds.y + ' w: ' + bounds.width + ' h: ' + bounds.height) : 'none'));
         this.line('View: x: ' + view.x + ' y: ' + view.y + ' w: ' + view.width + ' h: ' + view.height);
+        this.line('Center: x: ' + camera.centerX + ' y: ' + camera.centerY);
         this.line('Deadzone: ' + (deadzone ? ('x: ' + deadzone.x + ' y: ' + deadzone.y + ' w: ' + deadzone.width + ' h: ' + deadzone.height) : deadzone));
         this.line('Total in view: ' + camera.totalInView);
         this.line('At limit: x: ' + camera.atLimit.x + ' y: ' + camera.atLimit.y);
@@ -658,12 +676,13 @@ Phaser.Utils.Debug.prototype = {
         var modes = Phaser.PointerModes;
 
         this.line('Pointers: (Max: ' + input.maxPointers + ')');
-        this.line('  ' + (mousePointer.isDown ? 'x' : 'o') + ' ' + modes[mousePointer.pointerMode]);
+        this.line('  ' + (mousePointer.isDown ? 'x' : 'o') + ' ' + modes[mousePointer.pointerMode] + ' ' + mousePointer.identifier);
 
         for (var i = 0; i < pointers.length; i++)
         {
             var p = pointers[i];
-            this.line('  ' + (p.active ? '+' : '-') + ' ' + modes[p.pointerMode]);
+
+            this.line('  ' + (p.active ? '+' : '-') + ' ' + modes[p.pointerMode] + ' ' + p.identifier);
         }
 
         this.stop();
