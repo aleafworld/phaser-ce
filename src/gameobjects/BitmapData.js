@@ -586,9 +586,14 @@ Phaser.BitmapData.prototype = {
 
         if (!callback)
         {
+            image.width = this.width;
+            image.height = this.height;
+            
             var obj = cache.addImage(key, '', image);
+            
+            obj.base.hasLoaded = true;
 
-            return new PIXI.Texture(obj.base);
+            return new PIXI.Texture(obj.base, new PIXI.Rectangle(0, 0, this.width, this.height));
         }
 
         return null;
