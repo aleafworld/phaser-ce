@@ -1753,7 +1753,7 @@ Phaser.Group.prototype.callAll = function (method)
 
         if (callback)
         {
-            if (methodLength>1)
+            if (methodLength > 1)
             {
                 callbackContext = this.callbackFromArray(this.children[i], method, methodLength - 1);
             }
