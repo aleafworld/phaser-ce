@@ -1711,14 +1711,13 @@ Phaser.Group.prototype.callbackFromArray = function (child, callback, length)
 * Calls a function, specified by name, on all on children.
 *
 * The function is called for all children regardless if they are dead or alive (see callAllExists for different options).
-* After the method parameter and context you can add as many extra parameters as you like, which will all be passed to the child.
+* After the method parameter you can add as many extra parameters as you like, which will all be passed to the child.
 *
 * @method Phaser.Group#callAll
 * @param {string} method - Name of the function on the child to call. Deep property lookup is supported.
-* @param {string} [context=null] - A string containing the context under which the method will be executed. Set to null to default to the child.
 * @param {...any} args - Additional parameters that will be passed to the method.
 */
-Phaser.Group.prototype.callAll = function (method, context)
+Phaser.Group.prototype.callAll = function (method)
 {
 
     if (method === undefined)
@@ -1731,27 +1730,13 @@ Phaser.Group.prototype.callAll = function (method, context)
 
     var methodLength = method.length;
 
-    if (context === undefined || context === null || context === '')
-    {
-        context = null;
-    }
-    else
-    {
-        //  Extract the context into an array
-        if (typeof context === 'string')
-        {
-            context = context.split('.');
-            var contextLength = context.length;
-        }
-    }
-
     var args;
 
-    if (arguments.length > 2)
+    if (arguments.length > 1)
     {
         args = [];
 
-        for (var i = 2; i < arguments.length; i++)
+        for (var i = 1; i < arguments.length; i++)
         {
             args.push(arguments[i]);
         }
@@ -1762,19 +1747,17 @@ Phaser.Group.prototype.callAll = function (method, context)
 
     for (var i = 0; i < this.children.length; i++)
     {
-        var child = this.children[i];
+        callbackContext = this.children[i];
 
-        callback = this.callbackFromArray(child, method, methodLength);
+        callback = this.callbackFromArray(this.children[i], method, methodLength);
 
-        if (context && callback)
+        if (callback)
         {
-            callbackContext = this.callbackFromArray(child, context, contextLength);
-
+            if (methodLength > 1)
+            {
+                callbackContext = this.callbackFromArray(this.children[i], method, methodLength - 1);
+            }
             callback.apply(callbackContext, args);
-        }
-        else if (callback)
-        {
-            callback.apply(child, args);
         }
     }
 
