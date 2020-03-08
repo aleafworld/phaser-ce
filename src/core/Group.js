@@ -1744,18 +1744,18 @@ Phaser.Group.prototype.callAll = function (method)
 
     var callback = null;
     var callbackContext = null;
-    
+
     for (var i = 0; i < this.children.length; i++)
     {
         callbackContext = this.children[i];
 
-        callback = this.callbackFromArray(child, method, methodLength);
+        callback = this.callbackFromArray(this.children[i], method, methodLength);
 
         if (callback)
         {
             if (methodLength>1)
             {
-                callbackContext = this.callbackFromArray(child, method, methodLength - 1);
+                callbackContext = this.callbackFromArray(this.children[i], method, methodLength - 1);
             }
             callback.apply(callbackContext, args);
         }
